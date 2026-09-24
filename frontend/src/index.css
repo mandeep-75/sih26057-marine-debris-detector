@@ -1,0 +1,122 @@
+@import "tailwindcss";
+
+@theme {
+  --color-surface-0: #f1f5f9;
+  --color-surface-1: #ffffff;
+  --color-surface-2: #ffffff;
+  --color-surface-3: #f1f5f9;
+
+  --color-accent-50: #ecfeff;
+  --color-accent-100: #cffafe;
+  --color-accent-200: #a5f3fc;
+  --color-accent-300: #67e8f9;
+  --color-accent-400: #22d3ee;
+  --color-accent-500: #06b6d4;
+  --color-accent-600: #0891b2;
+  --color-accent-700: #0e7490;
+  --color-accent-800: #155e75;
+
+  --color-class-can: #813e31;
+  --color-class-hook: #c88541;
+  --color-class-drink-carton: #d3ca9c;
+  --color-class-chain: #7d894d;
+  --color-class-shampoo-bottle: #d590a1;
+  --color-class-valve: #77c5b2;
+  --color-class-bottle: #5984c0;
+  --color-class-tire: #383e57;
+  --color-class-standing-bottle: #4b9849;
+  --color-class-propeller: #389494;
+
+  --color-highlight: #b45309;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  background: var(--color-surface-0);
+  color: #334155;
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+::selection {
+  background: rgba(14, 116, 144, 0.18);
+}
+
+input[type="range"] {
+  accent-color: #0e7490;
+}
+
+.swatch {
+  box-shadow: 0 0 0 1px rgba(15, 23, 42, 0.12);
+}
+
+/* ---- Leaflet (light) ---- */
+.leaflet-container {
+  background: #d8e4ea;
+  font-family: inherit;
+}
+
+.leaflet-popup-content-wrapper {
+  background: #ffffff;
+  color: #334155;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.12);
+}
+
+.leaflet-popup-content {
+  margin: 12px 14px;
+}
+
+.leaflet-popup-tip {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+}
+
+.leaflet-container a.leaflet-popup-close-button {
+  color: #64748b;
+}
+
+.leaflet-container a.leaflet-popup-close-button:hover {
+  color: #0f172a;
+}
+
+.leaflet-bar a {
+  background: #ffffff;
+  color: #334155;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.leaflet-bar a:hover {
+  background: #f1f5f9;
+  color: #0f172a;
+}
+
+.leaflet-bar a.leaflet-disabled {
+  background: #f8fafc;
+  color: #cbd5e1;
+}
+
+.leaflet-control-attribution {
+  background: rgba(255, 255, 255, 0.8);
+  color: #64748b;
+}
+
+.leaflet-control-attribution a {
+  color: #0e7490;
+}
+
+.leaflet-tooltip {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  color: #334155;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.1);
+}
+
+.leaflet-tooltip-top:before {
+  border-top-color: #e2e8f0;
+}
