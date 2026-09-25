@@ -5,20 +5,18 @@ test.describe('Debris dashboard smoke', () => {
     const errors = []
     page.on('pageerror', (e) => errors.push(`pageerror: ${e.message}`))
     page.on('console', (m) => {
-      // 503 from /detect/stream or /detect is by design when the selected scan
-      // type's trained weights aren't deployed yet (falls back to another model).
-      if (m.type() === 'error' && !/503|Failed to load resource/.test(m.text())) errors.push(`console: ${m.text()}`)
+      if (m.type() === 'error') errors.push(`console: ${m.text()}`)
     })
 
     await page.goto('/')
     await expect(page).toHaveTitle(/Marine Debris/)
 
     // Model chip (side-scan default) + dropdown lists both scan types
-    await expect(page.getByRole('button', { name: /yolo11s-ss/ })).toBeVisible()
-    await page.getByRole('button', { name: /yolo11s-ss/ }).click()
+    await expect(page.getByRole('button', { name: /ACTIVE MODEL/ })).toBeVisible()
+    await page.getByRole('button', { name: /ACTIVE MODEL/ }).click()
     await expect(page.getByRole('option', { name: /yolo11s-fls/ })).toBeVisible()
     await page.getByRole('option', { name: /yolo11s-fls/ }).click()
-    await expect(page.getByRole('button', { name: /yolo11s-fls/ })).toBeVisible()
+    await expect(page.getByRole('button', { name: /Forward-looking sonar/ })).toBeVisible()
 
     // 1) Load samples
     await page.getByRole('button', { name: 'Load all 6' }).click()

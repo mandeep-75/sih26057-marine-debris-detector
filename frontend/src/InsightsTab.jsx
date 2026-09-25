@@ -1,13 +1,15 @@
 import { useMemo } from 'react'
 import { useSession } from './session.jsx'
-import { CLASSES, classDotClass, CLASS_COLORS } from './classes.js'
+import { classesFor, classDotClass, CLASS_COLORS } from './classes.js'
 import EmptyState from './components/EmptyState.jsx'
 
 function KpiCards({ images, detections }) {
+  const { scanType } = useSession()
+  const classNames = classesFor(scanType)
   const obj = detections.length
   const avg = obj ? detections.reduce((s, d) => s + d.confidence, 0) / obj : 0
   const classesFound = new Set(detections.map((d) => d.class))
-  const firstTwo = CLASSES.filter((c) => classesFound.has(c)).slice(0, 2)
+  const firstTwo = classNames.filter((c) => classesFound.has(c)).slice(0, 2)
   const cards = [
     {
       label: 'Images scanned',
@@ -32,7 +34,7 @@ function KpiCards({ images, detections }) {
       ))}
       <div className="rounded-lg border border-slate-200 bg-surface-2 p-5">
         <p className="text-xs text-slate-600">Classes found</p>
-        <p className="mt-1 font-mono text-2xl font-semibold text-slate-900">{classesFound.size}/10</p>
+        <p className="mt-1 font-mono text-2xl font-semibold text-slate-900">{classesFound.size}/{classNames.length}</p>
         <p className="mt-1 flex items-center gap-2 text-xs text-slate-500">
           {firstTwo.length ? (
             firstTwo.map((c) => (
@@ -50,13 +52,15 @@ function KpiCards({ images, detections }) {
 }
 
 function ClassDistribution({ detections }) {
+  const { scanType } = useSession()
+  const classNames = classesFor(scanType)
   const counts = useMemo(() => {
     const c = {}
     for (const d of detections) c[d.class] = (c[d.class] || 0) + 1
     return c
   }, [detections])
   const total = detections.length
-  const rows = CLASSES.filter((c) => counts[c]).sort((a, b) => counts[b] - counts[a])
+  const rows = classNames.filter((c) => counts[c]).sort((a, b) => counts[b] - counts[a])
   const max = Math.max(...rows.map((c) => counts[c]), 1)
 
   if (!total) {

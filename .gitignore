@@ -8,12 +8,6 @@ test-results/
 playwright-report/
 shots/
 
-# Python
-.venv/
-venv/
-__pycache__/
-*.pyc
-
 # Logs & env
 *.log
 .env
@@ -32,3 +26,4 @@ yolo11s.pt
 side_sonar/
 side_sonar.zip
 fls_sonar_yolo/
+.vercel

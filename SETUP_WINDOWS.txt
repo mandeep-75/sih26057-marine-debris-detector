@@ -3,86 +3,42 @@ WINDOWS SETUP & RUN — Marine Debris Detection (SIH26057 · MoES/NIOT)
 
 Project layout
 --------------
-  backend\             FastAPI API (YOLO11s inference)
-    yolo11s-ss_best.pt   trained weights — Side-Scan Sonar (SSS) model
-    yolo11s-fls_best.pt  trained weights — Forward-Looking Sonar (FLS) model
-    (Weights are strictly per-type: SSS never falls back to the FLS model.)
-  frontend\            React + Vite web UI (index.html, src\, public\, e2e\)
-  dev.sh               one-command launcher (macOS/Linux bash)
-  dev.cmd              one-command launcher (Windows)
+  frontend\            React + Vite web application
+    public\models\     ONNX model files used for in-browser inference
+    src\               detection, review, insights, and reporting UI
+  dev.cmd              one-command frontend launcher
+  dev.sh               macOS/Linux frontend launcher
 
 Prereqs
 -------
-  1) Python 3.12 (64-bit)
-     https://www.python.org/downloads/release/python-31210/
-     During install tick "Add python.exe to PATH".
+  Node.js 20 LTS or newer, including npm
 
-  2) Node.js 20 LTS or newer (comes with npm)
-     https://nodejs.org/
+Setup
+-----
 
----------------------------------------------------------------------------
-STEP 1 — Backend (Python)
----------------------------------------------------------------------------
-Open "Command Prompt" (cmd) and run:
+  1. Open Command Prompt.
+  2. Navigate to the project directory.
+  3. Install frontend dependencies:
 
-  cd C:\path\to\hack
-  python -m venv .venv
-  .venv\Scripts\activate
+       cd frontend
+       npm install
 
-  REM -- ON GPU machines (recommended; pick the CUDA build matching your driver)
-  pip install torch torchvision --index-url https://download.pytorch.org/whl/cu121
-  pip install "ultralytics>=8.3" fastapi "uvicorn[standard]" python-multipart pyyaml pillow numpy
+Run
+---
 
-  REM -- OR on CPU-only machines: skip the torch line above and just run
-  pip install "ultralytics>=8.3" fastapi "uvicorn[standard]" python-multipart pyyaml pillow numpy
-
-  REM -- verify the models load
-  python -c "from backend.config import SCAN_TYPES, weights_for; print({s: str(weights_for(s)) for s in SCAN_TYPES})"
-
----------------------------------------------------------------------------
-STEP 2 — Frontend (Node)
----------------------------------------------------------------------------
-Still in cmd:
-
-  cd C:\path\to\hack\frontend
-  npm install
-
----------------------------------------------------------------------------
-STEP 3 — RUN (two terminals, or one command — see dev.cmd below)
----------------------------------------------------------------------------
-Terminal 1 — API:
-  cd C:\path\to\hack
-  .venv\Scripts\activate
-  python -m uvicorn backend.main:app --host 127.0.0.1 --port 8000
-  -> check http://localhost:8000/health  ({"scan_type":"sidescan"|"forward", "ready":true|false, "weights":"...yolo11s-ss_best.pt"|"...yolo11s-fls_best.pt"})
-
-Terminal 2 — UI:
   cd C:\path\to\hack\frontend
   npm run dev
-  -> open http://localhost:5173
-     (Vite proxies /detect and /health to the API on :8000 — no CORS needed)
 
-ONE COMMAND (optional):
+  Open http://localhost:5173
+
+One-command launcher
+--------------------
+
   cd C:\path\to\hack
   dev.cmd
-  -> starts API on :8000 AND UI on :5173; press Ctrl+C to stop both.
 
----------------------------------------------------------------------------
-dev.cmd (one-command launcher) — content
----------------------------------------------------------------------------
-  @echo off
-  setlocal
-  cd /d "%~dp0"
-  if exist .venv\Scripts\activate.bat (
-    call .venv\Scripts\activate.bat
-  )
-  start "mdeb-api"  cmd /k "python -m uvicorn backend.main:app --host 127.0.0.1 --port 8000"
-  cd frontend
-  call npm run dev
+Production build
+----------------
 
----------------------------------------------------------------------------
-Env overrides (optional)
----------------------------------------------------------------------------
-  set VITE_API_URL=http://localhost:8000   REM before npm run dev, if not using the Vite proxy
-  set DETECT_WEIGHTS=C:\path\to\hack\backend\yolo11s-ss_best.pt   REM pin a single weights file (both types)
-  set DETECT_WEIGHTS_SIDESCAN=C:\path\to\hack\backend\my_ss_weights.pt   REM pin per scan type
+  cd C:\path\to\hack\frontend
+  npm run build

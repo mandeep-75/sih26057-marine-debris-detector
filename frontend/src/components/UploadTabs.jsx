@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react'
 import { useSession } from '../session.jsx'
 import { scanTypeOf } from '../api.js'
+import { classesFor } from '../classes.js'
 
 export function DropZone() {
   const { addFiles, addToast, scanType } = useSession()
@@ -18,6 +19,8 @@ export function DropZone() {
       setError('Unsupported format — PNG / JPG only.')
     }
   }
+
+  const active = scanTypeOf(scanType)
 
   return (
     <div className="rounded-lg border border-slate-200 bg-surface-1 p-4">
@@ -68,8 +71,9 @@ export function DropZone() {
       </div>
       {error && <p className="mt-2 text-xs text-red-600">{error}</p>}
       <p className="mt-2 text-xs text-slate-500">
-        Model: <span className="font-mono text-slate-600">{scanTypeOf(scanType).model}</span> · {scanTypeOf(scanType).label} · 10 classes ·
-        pre-processing: speckle filter + contrast enhancement · streamed inference
+        Model: <span className="font-mono text-slate-600">{active.model}</span> · {active.label} ·{' '}
+        {classesFor(scanType).length} classes · pre-processing: speckle filter + contrast enhancement · embedded
+        in-browser inference
       </p>
     </div>
   )

@@ -51,7 +51,7 @@ export default function ModelStatusChip() {
         className="flex items-center gap-2 rounded-full border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 transition-colors hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-600"
       >
         <Dot state={state} />
-        <span className="font-mono">{active.model}</span>
+        <span className="font-mono">ACTIVE MODEL</span>
         <span className="text-slate-500">·</span>
         <span className="max-w-40 truncate">{active.label}</span>
         <svg viewBox="0 0 16 16" className={`size-3 text-slate-500 transition-transform ${open ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true">
@@ -85,6 +85,9 @@ export default function ModelStatusChip() {
               </li>
             )
           })}
+          <li className="border-t border-slate-200 bg-slate-50 px-3 py-1.5 text-[10px] text-slate-500">
+            {health?.embedded ? 'Embedded · runs in-browser' : 'Model unavailable'}
+          </li>
         </ul>
       )}
     </div>

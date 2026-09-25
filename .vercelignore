@@ -1,0 +1,25 @@
+# ML training artifacts & raw datasets (not needed by the Vercel frontend build)
+side_sonar/
+side_sonar.zip
+models/
+fls_sonar_yolo/
+runs/
+yolo11s.pt
+convert_fls.py
+
+# Local build output — Vercel rebuilds on its side
+frontend/dist/
+frontend/node_modules/
+frontend/.vercel/
+
+# Tests & screenshots
+frontend/test-results/
+frontend/playwright-report/
+frontend/shots/
+
+# Local tooling
+dev.sh
+dev.cmd
+SETUP_WINDOWS.txt
+*.log
+.DS_Store

@@ -1,6 +1,7 @@
 import { useCallback, useRef, useState } from 'react'
 import { useSession } from './session.jsx'
-import { detectStream, parseCoordinates, runDetect } from './api.js'
+import { parseCoordinates } from './api.js'
+import { detectImageFile, ensureEngine } from './onnxDetect.js'
 import { DropZone, SampleGallery } from './components/UploadTabs.jsx'
 import FileQueue from './components/FileQueue.jsx'
 import { classDotClass } from './classes.js'
@@ -23,35 +24,17 @@ export function usePipeline() {
     setProgress({ done: 0, total: pending.length })
 
     const apply = (imgId, patch) => setImageStatus(imgId, patch)
-    const byName = new Map(pending.map((i) => [i.name, i.id]))
+    let scanStarted = false
 
-    // Streaming path: one request, results emitted as each frame finishes (real-time).
     try {
-      await detectStream(pending.map((i) => i.file), scanType, confThreshold, (ev) => {
-        const id = byName.get(ev.filename)
-        if (id == null) return
-        if (ev.event === 'image_start') apply(id, { status: 'processing' })
-        else if (ev.event === 'image_done') {
-          apply(id, {
-            status: 'done',
-            detections: ev.detections,
-            latency_ms: ev.latency_ms,
-            width: ev.width,
-            height: ev.height,
-          })
-          setProgress((p) => ({ done: p.done + 1, total: ev.total }))
-        } else if (ev.event === 'image_error') {
-          apply(id, { status: 'error' })
-          setProgress((p) => ({ done: p.done + 1, total: ev.total }))
-        }
-      })
-    } catch {
-      // Fallback: one POST per image (older backend / proxy-less setup).
+      await ensureEngine(scanType)
+      scanStarted = true
       let done = 0
       for (const img of pending) {
         apply(img.id, { status: 'processing' })
         try {
-          const res = await runDetect(img.file, scanType, confThreshold)
+          const res = await detectImageFile(img.file, scanType, confThreshold)
+          res.detections = (res.detections || []).map((d, i) => ({ ...d, id: `${img.name}#${i}` }))
           apply(img.id, {
             status: 'done',
             detections: res.detections,
@@ -65,9 +48,13 @@ export function usePipeline() {
         done += 1
         setProgress({ done, total: pending.length })
       }
+    } catch {
+      pending.forEach((img) => apply(img.id, { status: 'error' }))
+      setProgress({ done: pending.length, total: pending.length })
+      addToast('Embedded model unavailable', 'error')
     } finally {
       setRunning(false)
-      addToast('Scan complete', 'success')
+      if (scanStarted) addToast('Scan complete', 'success')
     }
   }, [images, scanType, confThreshold, setImageStatus, addToast])
 

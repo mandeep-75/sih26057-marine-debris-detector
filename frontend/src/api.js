@@ -1,13 +1,16 @@
-import { CLASSES } from './classes.js'
+import { CLASSES, classesFor } from './classes.js'
 
-/* Scan-type registry. Drop a trained weights file into backend/ (yolo11s-ss_best.pt
-   or yolo11s-fls_best.pt / DETECT_WEIGHTS_* env) and it is served automatically. */
+/* Scan-type registry. Each type bundles an ONNX model exported from the trained
+   YOLO11s model and served from public/models/.
+   Inference runs fully in-browser via onnxruntime-web. */
 export const SCAN_TYPES = [
   {
     id: 'sidescan',
     label: 'Side-scan sonar',
     model: 'yolo11s-ss',
     caption: 'SSS · YOLO11s (PS 26057)',
+    onnx: '/models/ss.onnx',
+    weights: 'ss.onnx',
     samples: [
       'ss-victim-024.png',
       'ss-ship-014.png',
@@ -21,7 +24,9 @@ export const SCAN_TYPES = [
     id: 'forward',
     label: 'Forward-looking sonar',
     model: 'yolo11s-fls',
-    caption: 'FLS · YOLO11s trained weights',
+    caption: 'FLS · YOLO11s ONNX model',
+    onnx: '/models/fls.onnx',
+    weights: 'fls.onnx',
     samples: [
       'marine-debris-aris3k-324.png',
       'marine-debris-aris3k-609.png',
@@ -40,95 +45,41 @@ export const scanTypeOf = (id) => SCAN_TYPES.find((t) => t.id === id) || SCAN_TY
 export const MODEL_META = {
   model: scanTypeOf(DEFAULT_SCAN_TYPE).model,
   classes: CLASSES.slice(),
-  source: 'ultralytics · yolo11s',
+  source: 'onnxruntime-web · yolo11s',
   ready: false,
+  embedded: true,
 }
 
 export const SAMPLE_IMAGES = scanTypeOf(DEFAULT_SCAN_TYPE).samples
 
-const API_URL = (import.meta.env.VITE_API_URL || '').replace(/\/$/, '')
-
-// Detection ids are unique per image (the backend re-uses d-0, d-1 … per request).
-const uniqueIds = (detections, filename) =>
-  (detections || []).map((d, i) => ({ ...d, id: `${filename}#${i}` }))
-
-async function postDetect(file, scanTypeId, minConfidence) {
-  const controller = new AbortController()
-  const timer = setTimeout(() => controller.abort(), 45000)
-  try {
-    const body = new FormData()
-    body.append('file', file)
-    body.append('scan_type', scanTypeId)
-    const url = `${API_URL}/detect?min_confidence=${minConfidence}`
-    const res = await fetch(url, { method: 'POST', body, signal: controller.signal })
-    if (!res.ok) throw new Error(`backend ${res.status}: ${(await res.text()).slice(0, 200)}`)
-    const json = await res.json()
-    json.detections = uniqueIds(json.detections, file.name)
-    return json
-  } finally {
-    clearTimeout(timer)
-  }
-}
-
-/** Run detection on one image (single POST). Rejects on failure. */
-export async function runDetect(file, scanTypeId = DEFAULT_SCAN_TYPE, minConfidence = 0.25) {
-  return postDetect(file, scanTypeId, minConfidence)
-}
+export const N_CLASSES_BY_TYPE = Object.fromEntries(SCAN_TYPES.map((t) => [t.id, classesFor(t.id).length]))
 
 /**
- * Streaming batch detection (SSE). Posts many images in one request and invokes
- * onEvent(event) as each frame resolves, so the UI updates in real time:
- *   {event:'batch_start', total}
- *   {event:'image_start', index, total, filename}
- *   {event:'image_done',  index, total, filename, detections, latency_ms, width, height}
- *   {event:'image_error', index, total, filename, message}
- *   {event:'batch_done', total}
+ * Availability of the embedded (in-browser) models. Each scan type is ready
+ * when its ONNX weights are served from public/models/.
  */
-export async function detectStream(files, scanTypeId = DEFAULT_SCAN_TYPE, minConfidence = 0.25, onEvent = () => {}) {
-  const body = new FormData()
-  for (const f of files) body.append('files', f)
-  body.append('scan_type', scanTypeId)
-  const url = `${API_URL}/detect/stream?min_confidence=${minConfidence}`
-  const res = await fetch(url, { method: 'POST', body })
-  if (!res.ok) throw new Error(`backend ${res.status}: ${(await res.text()).slice(0, 200)}`)
-  if (!res.body) throw new Error('streaming unsupported')
-  const reader = res.body.getReader()
-  const dec = new TextDecoder()
-  let buf = ''
-  const STOP = Symbol('stop')
-  while (true) {
-    const { done, value } = await reader.read()
-    if (done) break
-    buf += dec.decode(value, { stream: true })
-    let sep
-    while ((sep = buf.indexOf('\n\n')) !== -1) {
-      const part = buf.slice(0, sep)
-      buf = buf.slice(sep + 2)
-      const line = part.split('\n').find((l) => l.startsWith('data: '))
-      if (!line) continue
-      let ev
-      try {
-        ev = JSON.parse(line.slice(6))
-      } catch {
-        continue
-      }
-      if (ev.event === 'image_done') ev.detections = uniqueIds(ev.detections, ev.filename)
-      if (onEvent(ev) === STOP) {
-        reader.cancel()
-        return
-      }
-    }
-  }
-}
-
 export async function fetchHealth(scanTypeId = DEFAULT_SCAN_TYPE) {
-  const fallback = { ...MODEL_META, model: scanTypeOf(scanTypeId).model, scan_type: scanTypeOf(scanTypeId).id }
-  try {
-    const res = await fetch(`${API_URL}/health?scan_type=${scanTypeId}`)
-    if (!res.ok) throw new Error()
-    return { ...fallback, ...(await res.json()) }
-  } catch {
-    return fallback
+  const perType = {}
+  for (const t of SCAN_TYPES) {
+    let ok = false
+    try {
+      const res = await fetch(t.onnx, { method: 'HEAD' })
+      ok = res.ok
+    } catch {
+      ok = false
+    }
+    perType[t.id] = { ready: ok }
+  }
+  const active = scanTypeOf(scanTypeId)
+  return {
+    model: 'yolo11s',
+    classes: classesFor(scanTypeId).slice(),
+    source: 'onnxruntime-web · yolo11s',
+    ready: perType[scanTypeId]?.ready ?? false,
+    scan_type: scanTypeId,
+    scan_types: perType,
+    weights: active.weights,
+    embedded: true,
   }
 }
 

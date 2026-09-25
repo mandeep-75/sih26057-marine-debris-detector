@@ -1,5 +1,5 @@
 import { useSession } from '../session.jsx'
-import { CLASSES, classDotClass } from '../classes.js'
+import { classesFor, classDotClass } from '../classes.js'
 
 export function ConfidenceSlider() {
   const { confThreshold, setConfThreshold, images } = useSession()
@@ -42,7 +42,8 @@ export function ConfidenceSlider() {
 }
 
 export function ClassFilterChips({ counts }) {
-  const { classFilter, setClassFilter } = useSession()
+  const { classFilter, setClassFilter, scanType } = useSession()
+  const classNames = classesFor(scanType)
 
   const toggle = (cls) => {
     setClassFilter((prev) => {
@@ -66,7 +67,7 @@ export function ClassFilterChips({ counts }) {
       >
         all
       </button>
-      {CLASSES.map((cls) => {
+      {classNames.map((cls) => {
         const n = counts[cls] || 0
         const active = classFilter?.has(cls)
         const dim = classFilter && !active

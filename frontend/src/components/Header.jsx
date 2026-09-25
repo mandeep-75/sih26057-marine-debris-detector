@@ -23,7 +23,6 @@ export default function Header({ onFreshSession }) {
             <h1 className="text-base font-semibold tracking-tight text-slate-900">
               Marine Debris &amp; Anomaly Detection
             </h1>
-            <p className="text-xs text-slate-600">Side-scan acoustic scan · NIOT / MoES · SIH26057</p>
           </div>
         </div>
         <div className="flex items-center gap-3">
@@ -36,7 +35,7 @@ export default function Header({ onFreshSession }) {
               <svg viewBox="0 0 16 16" className="size-3.5" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true">
                 <path d="M2 8h9M7 3l5 5-5 5" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
-              Fresh session
+             RESET
             </button>
             {confirmOpen && (
               <>
