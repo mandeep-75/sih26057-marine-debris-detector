@@ -1,7 +1,7 @@
 # ML training artifacts & raw datasets (not needed by the Vercel frontend build)
 side_sonar/
 side_sonar.zip
-models/
+/models/
 fls_sonar_yolo/
 runs/
 yolo11s.pt

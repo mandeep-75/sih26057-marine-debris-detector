@@ -19,7 +19,7 @@ shots/
 
 # ML training artifacts & backups
 runs/
-models/
+/models/
 yolo11s.pt
 
 # Raw datasets (large; extracted samples live in frontend/public/samples)

@@ -1,0 +1,14 @@
+{
+  "model": "yolo11s-ss",
+  "task": "detect",
+  "imgsz": 640,
+  "nc": 5,
+  "classes": [
+    "cylinder",
+    "manta",
+    "airplane",
+    "shipwreck",
+    "victim"
+  ],
+  "source": "yolo11s-ss"
+}

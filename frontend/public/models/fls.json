@@ -1,0 +1,19 @@
+{
+  "model": "yolo11s-fls",
+  "task": "detect",
+  "imgsz": 640,
+  "nc": 10,
+  "classes": [
+    "can",
+    "bottle",
+    "drink-carton",
+    "chain",
+    "propeller",
+    "tire",
+    "hook",
+    "valve",
+    "shampoo-bottle",
+    "standing-bottle"
+  ],
+  "source": "yolo11s-fls"
+}
